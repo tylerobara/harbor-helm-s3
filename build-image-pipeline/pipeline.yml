@@ -1,0 +1,45 @@
+resources:
+- name: chart
+  tags: [vm]
+  type: s3
+  source:
+    endpoint: ((s3.endpoint))
+    bucket: ((s3.bucket))
+    regexp: ((s3.regexp))
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3.secret_access_key))
+
+- name: helm-image
+  tags: [vm]
+  type: registry-image
+  source:
+    repository: ((registry.url))/library/helm
+
+jobs:
+- name: chart-upload
+  plan:
+    - get: helm-image
+      tags: [vm]
+    - get: chart
+      resource: chart
+      tags: [vm]
+      trigger: true
+    - task: helm-version
+      image: helm-image
+      tags: [vm]
+      config:
+        platform: linux
+        inputs:
+          - name: chart
+        run:
+            path: /bin/bash
+            args:
+                - -c
+                - |
+                    echo ${REGISTRY_PW} | helm registry login https://${REGISTRY_URL} -u ${REGISTRY_USER} --password-stdin
+                    chart=$(ls chart/*.tgz)
+                    helm push $chart oci://${REGISTRY_URL}/charts
+      params:
+        REGISTRY_PW: ((registry.password))
+        REGISTRY_USER: ((registry.user))
+        REGISTRY_URL: ((registry.url))
