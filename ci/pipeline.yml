@@ -19,6 +19,7 @@ jobs:
 - name: chart-upload
   plan:
     - get: helm-image
+      trigger: true
       tags: [vm]
     - get: chart
       resource: chart

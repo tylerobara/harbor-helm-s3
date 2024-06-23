@@ -1,6 +1,6 @@
 FROM alpine
 
-RUN apk add bash
+RUN apk update && apk add bash
 
 RUN wget https://get.helm.sh/helm-v3.15.2-linux-amd64.tar.gz \
     && tar xvf helm-v3.15.2-linux-amd64.tar.gz \
