@@ -1,45 +1,46 @@
 resources:
-- name: chart
+- name: helm-dockerfile
+  type: git
+  icon: github
   tags: [vm]
-  type: s3
   source:
-    endpoint: ((s3.endpoint))
-    bucket: ((s3.bucket))
-    regexp: ((s3.regexp))
-    access_key_id: ((s3.access_key_id))
-    secret_access_key: ((s3.secret_access_key))
+    uri: https://github.com/tylerobara/harbor-helm-s3.git
+    branch: main
 
 - name: helm-image
   tags: [vm]
   type: registry-image
   source:
     repository: ((registry.url))/library/helm
+    username: ((registry.user))
+    password: ((registry.password))
 
 jobs:
-- name: chart-upload
+- name: build-and-push
   plan:
-    - get: helm-image
-      tags: [vm]
-    - get: chart
-      resource: chart
+    - get: helm-dockerfile
+      # resource: helm-dockerfile
       tags: [vm]
       trigger: true
-    - task: helm-version
-      image: helm-image
+    - task: build-image
+      privileged: true
       tags: [vm]
       config:
         platform: linux
+        image_resource:
+          type: registry-image
+          source:
+            repository: concourse/oci-build-task
         inputs:
-          - name: chart
+          - name: helm-dockerfile
+        outputs:
+          - name: image
+        params:
+          CONTEXT: helm-dockerfile/dockerfiles/helm
         run:
-            path: /bin/bash
-            args:
-                - -c
-                - |
-                    echo ${REGISTRY_PW} | helm registry login https://${REGISTRY_URL} -u ${REGISTRY_USER} --password-stdin
-                    chart=$(ls chart/*.tgz)
-                    helm push $chart oci://${REGISTRY_URL}/charts
+          path: build
+    - put: helm-image
+      tags: [vm]
       params:
-        REGISTRY_PW: ((registry.password))
-        REGISTRY_USER: ((registry.user))
-        REGISTRY_URL: ((registry.url))
+        image: image/image.tar
+        version: 0.0.3
