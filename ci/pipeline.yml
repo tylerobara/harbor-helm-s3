@@ -1,5 +1,6 @@
 resources:
 - name: chart
+  icon: kubernetes
   tags: [vm]
   type: s3
   source:
@@ -10,6 +11,7 @@ resources:
     secret_access_key: ((s3.secret_access_key))
 
 - name: helm-image
+  icon: docker
   tags: [vm]
   type: registry-image
   source:
