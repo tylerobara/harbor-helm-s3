@@ -1,0 +1,11 @@
+registry:
+  password: ((registry.password))
+  user: ((registry.user))
+  url: ((registry.url))
+
+s3:
+  endpoint: ((s3.endpoint))
+  bucket: ((s3.bucket))
+  regexp: "authentik/authentik-(.*).tgz"
+  access_key_id: ((s3.access_key_id))
+  secret_access_key: ((s3.secret_access_key))

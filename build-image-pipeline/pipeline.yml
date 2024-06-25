@@ -8,6 +8,7 @@ resources:
     branch: main
 
 - name: helm-image
+  icon: docker
   tags: [vm]
   type: registry-image
   source:
@@ -43,4 +44,4 @@ jobs:
       tags: [vm]
       params:
         image: image/image.tar
-        version: 0.0.4
+        version: 0.0.3
